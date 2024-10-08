@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Usuário</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        async function buscarCEP() {
+            const cepValue = document.getElementById('cep').value;
+
+            if (cepValue) {
+                try {
+                    const response = await fetch(`https://viacep.com.br/ws/${cepValue}/json/`);
+                    const data = await response.json();
+
+                    if (data.erro) {
+                        alert('CEP inválido.');
+                        return;
+                    }
+
+                    document.getElementById('endereco').value = data.logradouro || '';
+                    document.getElementById('complemento').value = data.complemento || '';
+                    document.getElementById('bairro').value = data.bairro || '';
+                    document.getElementById('cidade').value = data.localidade || '';
+                    document.getElementById('estado').value = data.uf || '';
+                } catch (error) {
+                    alert('Erro ao buscar o CEP.');
+                }
+            }
+        }
+
+        async function cadastrarUsuario(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('email').value;
+            const telefone = document.getElementById('telefone').value;
+            const cep = document.getElementById('cep').value;
+            const endereco = document.getElementById('endereco').value;
+            const complemento = document.getElementById('complemento').value;
+            const bairro = document.getElementById('bairro').value;
+            const cidade = document.getElementById('cidade').value;
+            const estado = document.getElementById('estado').value;
+            const senha = document.getElementById('senha').value;
+
+            const data = {
+                nome, email, telefone, cep, endereco, complemento, bairro, cidade, estado, senha
+            };
+
+            try {
+                const response = await fetch('/api/cadastrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (result.error) {
+                    alert(result.error);
+                } else {
+                    alert('Usuário cadastrado com sucesso!');
+                }
+            } catch (error) {
+                alert('Erro ao cadastrar usuário.');
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Cadastro de Usuário</h1>
+        <form onsubmit="cadastrarUsuario(event)">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" autocomplete="name" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" autocomplete="email" required>
+
+            <label for="telefone">Telefone:</label>
+            <input type="text" id="telefone" name="telefone" required>
+
+            <label for="cep">CEP:</label>
+            <input type="text" id="cep" name="cep" onblur="buscarCEP()" required>
+
+            <label for="endereco">Endereço:</label>
+            <input type="text" id="endereco" name="endereco" readonly>
+
+            <label for="complemento">Complemento:</label>
+            <input type="text" id="complemento" name="complemento">
+
+            <label for="bairro">Bairro:</label>
+            <input type="text" id="bairro" name="bairro" readonly>
+
+            <label for="cidade">Cidade:</label>
+            <input type="text" id="cidade" name="cidade" readonly>
+
+            <label for="estado">Estado:</label>
+            <input type="text" id="estado" name="estado" readonly>
+
+            <label for="senha">Senha:</label>
+            <input type="password" id="senha" name="senha" required>
+
+            <button type="submit">Cadastrar</button>
+        </form>
+
+        <!-- Botão para ler os dados da tabela -->
+        <button id="fetch-button">Ler Dados da Tabela</button>
+        <div id="output"></div>
+
+        <!-- Exibição dos dados -->
+        <pre id="output"></pre>
+
+        <!-- Script para a função de leitura dos dados -->
+        <script src="fetchData.js"></script>
+    </div>
+</body>
+</html>
