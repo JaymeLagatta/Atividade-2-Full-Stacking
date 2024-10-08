@@ -10,23 +10,25 @@ const port = 3000;
 
 // Configurações do Supabase usando variáveis de ambiente
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_ANON_KEY; // Utilize a chave anônima aqui
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static('public')); // Serve arquivos estáticos da pasta public
 
-// Middleware para definir o cabeçalho de codificação
+// Middleware para log de requisição
+app.use((req, res, next) => {
+    console.log(`Request URL: ${req.url}`); // Loga a URL da requisição
+    next(); // Chama o próximo middleware
+});
+
+// Definir o cabeçalho de codificação
 app.use((req, res, next) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     next();
 });
-
-
-
-// Serve arquivos estáticos da pasta 'public'
-app.use(express.static('public'));
 
 // Rota para cadastrar o usuário
 app.post('/api/cadastrar', async (req, res) => {
@@ -42,21 +44,19 @@ app.post('/api/cadastrar', async (req, res) => {
 
         const { data, error } = await supabase
             .from('usuario')
-            .insert([
-                {
-                    nome,
-                    email,
-                    telefone,
-                    cep,
-                    endereco: enderecoData.logradouro,
-                    complemento: enderecoData.complemento,
-                    bairro: enderecoData.bairro,
-                    cidade: enderecoData.localidade,
-                    estado: enderecoData.uf,
-                    senha,
-                    tipo_acesso: 1,
-                },
-            ]);
+            .insert([{
+                nome,
+                email,
+                telefone,
+                cep,
+                endereco: enderecoData.logradouro,
+                complemento: enderecoData.complemento,
+                bairro: enderecoData.bairro,
+                cidade: enderecoData.localidade,
+                estado: enderecoData.uf,
+                senha, // Considere usar hash para a senha
+                tipo_acesso: 1,
+            }]);
 
         if (error) {
             console.error('Erro ao inserir usuário:', error);
@@ -65,6 +65,7 @@ app.post('/api/cadastrar', async (req, res) => {
 
         return res.status(201).json({ message: 'Usuário cadastrado com sucesso!', data });
     } catch (err) {
+        console.error('Erro ao processar a requisição:', err);
         return res.status(500).json({ error: 'Erro ao processar a requisição.' });
     }
 });
@@ -82,10 +83,40 @@ app.get('/api/usuarios', async (req, res) => {
 
         return res.status(200).json(data);
     } catch (err) {
+        console.error('Erro ao processar a requisição:', err);
         return res.status(500).json({ error: 'Erro ao processar a requisição.' });
     }
 });
 
+// Rota para login 
+app.post('/api/login', async (req, res) => {
+    const { email, senha } = req.body;
+
+    try {
+        const { data: usuario, error } = await supabase
+            .from('usuario')
+            .select('*')
+            .eq('email', email)
+            .single(); // Retorna um único usuário com base no email
+
+        if (error || !usuario) {
+            return res.status(401).json({ error: 'Usuário não encontrado ou credenciais inválidas.' });
+        }
+
+        // Validação simples de senha (idealmente, use hash de senha)
+        if (usuario.senha !== senha) {
+            return res.status(401).json({ error: 'Senha incorreta.' });
+        }
+
+        // Login bem-sucedido
+        return res.status(200).json({ message: 'Login bem-sucedido' });
+    } catch (err) {
+        console.error('Erro ao processar login:', err);
+        return res.status(500).json({ error: 'Erro ao processar login.' });
+    }
+});
+
+// Inicia o servidor
 app.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`);
 });
