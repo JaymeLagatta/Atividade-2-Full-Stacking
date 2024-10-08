@@ -4,7 +4,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "echo 'No build step needed'",
+ 
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -23,8 +23,6 @@
   "devDependencies": {
     "eslint": "^9.12.0",
     "nodemon": "^2.0.22"
-  },
-  "engines": {
-    "node": "20.x"
   }
+
 }
