@@ -59,3 +59,27 @@ button {
 button:hover {
     background-color: #0056b3;
 }
+#output {
+    margin-top: 20px; /* Adiciona espaço acima do output */
+    padding: 15px; /* Adiciona espaçamento interno */
+    border: 1px solid #ddd; /* Adiciona uma borda ao output */
+    border-radius: 4px; /* Arredonda os cantos do output */
+    background-color: #f9f9f9; /* Fundo leve para o output */
+    white-space: pre-wrap; /* Preserva espaços e quebras de linha */
+    word-wrap: break-word; /* Quebra palavras longas */
+}
+.center-button {
+    display: block;
+    margin: 20px auto; /* Centraliza horizontalmente */
+    padding: 10px 20px;
+    background-color: #4CAF50; /* Cor do botão */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+    .center-button:hover {
+        background-color: #45a049; /* Efeito hover no botão */
+    }
+

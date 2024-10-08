@@ -1,0 +1,52 @@
+﻿<!-- login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        <form onsubmit="fazerLogin(event)">
+            <input type="email" id="email" placeholder="Digite seu email">
+            <input type="password" id="senha" placeholder="Digite sua senha">
+            <button onclick="fazerLogin(event)">Entrar</button>
+            
+        </form>
+
+        <!-- Botão para voltar à página de cadastro -->
+        <button class="center-button" onclick="window.location.href='index.html'">Voltar para Cadastro</button>
+
+        <script>async function fazerLogin(event) {
+            event.preventDefault(); // Previne o comportamento padrão do formulário
+
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, senha }),
+                });
+
+                const data = await response.json();
+
+                if (response.status === 200) {
+                    window.location.href = 'usuarios.html'; // Direciona para a página de usuários
+                } else {
+                    alert(data.error || 'Erro ao fazer login');
+                }
+            } catch (err) {
+                console.error('Erro na chamada de login:', err);
+                alert('Erro ao fazer login');
+            }
+        }</script>
+    </div>
+</body>
+</html>
