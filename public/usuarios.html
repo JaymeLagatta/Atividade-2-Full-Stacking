@@ -4,21 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Usuários</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table, th, td {
-            border: 1px solid black;
-        }
-
-        th, td {
-            padding: 8px;
-            text-align: left;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 </head>
 <body>
     <h1>Lista de Usuários</h1>
@@ -29,11 +18,28 @@
                 <th>Email</th>
                 <th>Telefone</th>
                 <th>CEP</th>
-                <!-- Adicione outras colunas que desejar -->
+                <th>Ações</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
+
+    <!-- Modal de Edição -->
+    <div id="editModal" style="display:none;">
+        <h2>Editar Usuário</h2>
+        <form id="editForm">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" required>
+            <label for="email">Email:</label>
+            <input type="email" id="email" required>
+            <label for="telefone">Telefone:</label>
+            <input type="tel" id="telefone" required>
+            <label for="cep">CEP:</label>
+            <input type="text" id="cep" required>
+            <button type="submit">Salvar</button>
+            <button type="button" onclick="closeModal()">Cancelar</button>
+        </form>
+    </div>
 
     <script>
         async function fetchUsuarios() {
@@ -41,6 +47,7 @@
             const usuarios = await response.json();
 
             const tbody = document.querySelector('#usuarios-table tbody');
+            tbody.innerHTML = '';  // Limpa o conteúdo da tabela antes de popular
             usuarios.forEach(usuario => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -48,9 +55,78 @@
                     <td>${usuario.email}</td>
                     <td>${usuario.telefone}</td>
                     <td>${usuario.cep}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editUsuario(${usuario.id})">Editar</button>
+                        <button class="btn btn-delete" onclick="deleteUsuario(${usuario.id})">Apagar</button>
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
+
+            // Inicializa o DataTables
+            $('#usuarios-table').DataTable();
+        }
+
+        async function deleteUsuario(id) {
+            const confirmDelete = confirm('Tem certeza que deseja apagar este usuário?');
+            if (confirmDelete) {
+                await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+                fetchUsuarios();  // Atualiza a lista após deletar
+            }
+        }
+
+        function editUsuario(id) {
+            fetch(`/api/usuarios/${id}`)
+                .then(response => response.json())
+                .then(usuario => {
+                    document.getElementById('nome').value = usuario.nome;
+                    document.getElementById('email').value = usuario.email;
+                    document.getElementById('telefone').value = usuario.telefone;
+                    document.getElementById('cep').value = usuario.cep;
+
+                    // Armazenar o ID do usuário
+                    document.getElementById('editForm').onsubmit = function(event) {
+                        event.preventDefault(); // Evita o envio padrão do formulário
+                        updateUsuario(id); // Chama a função para atualizar
+                    };
+
+                    // Exibir o modal
+                    document.getElementById('editModal').style.display = 'block';
+                })
+                .catch(error => alert('Erro ao carregar dados do usuário: ' + error.message));
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        async function updateUsuario(id) {
+            const updatedData = {
+                nome: document.getElementById('nome').value,
+                email: document.getElementById('email').value,
+                telefone: document.getElementById('telefone').value,
+                cep: document.getElementById('cep').value
+            };
+
+            await fetch(`/api/usuarios/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao atualizar usuário');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('Usuário atualizado com sucesso!');
+                fetchUsuarios(); // Atualiza a lista de usuários
+                closeModal(); // Fecha o modal
+            })
+            .catch(error => alert(error.message));
         }
 
         window.onload = fetchUsuarios;
