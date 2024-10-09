@@ -117,6 +117,49 @@ app.post('/api/login', async (req, res) => {
         return res.status(500).json({ error: 'Erro ao processar login.' });
     }
 });
+// Rota para deletar um usuário
+app.delete('/api/usuarios/:id', async (req, res) => {
+    const { id } = req.params;
+    const { error } = await supabase
+        .from('usuario')
+        .delete()
+        .eq('id', id);
+
+    if (error) return res.status(400).send(error);
+    res.status(204).send();  // No Content
+});
+// Rota para obter um usuário específico
+app.get('/api/usuarios/:id', async (req, res) => {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+        .from('usuario')
+        .select('*')
+        .eq('id', id)
+        .single(); // Obtem um único registro
+
+    if (error) return res.status(400).send(error);
+    res.json(data); // Retorna os dados em formato JSON
+});
+
+// Rota para editar um usuário 
+app.put('/api/usuarios/:id', async (req, res) => {
+    const { id } = req.params;
+    const { nome, email, telefone, cep } = req.body;
+
+    const { data, error } = await supabase
+        .from('usuario')
+        .update({ nome, email, telefone, cep })
+        .eq('id', id);
+
+    if (error) return res.status(400).send(error);
+    res.send(data);
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor rodando na porta ${PORT}`);
+});
 
 // Inicia o servidor
 app.listen(port, () => {
